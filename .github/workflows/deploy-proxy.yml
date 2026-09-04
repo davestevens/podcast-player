@@ -1,0 +1,31 @@
+name: Deploy proxy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'proxy/**'
+      - '.github/workflows/deploy-proxy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: proxy/package-lock.json
+
+      - name: Install dependencies
+        working-directory: proxy
+        run: npm ci
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: proxy

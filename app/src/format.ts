@@ -1,3 +1,11 @@
+export function formatDate(timestampMs: number): string {
+  return new Date(timestampMs).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export function formatTime(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00'
   const hours = Math.floor(totalSeconds / 3600)

@@ -8,6 +8,7 @@ import {
   useMediaSession,
 } from './useMediaSession'
 import { useSleepTimer, type SleepTimerMode } from './useSleepTimer'
+import { usePositionPersistence } from './usePositionPersistence'
 
 const SEEK_STEP_SEC = 15
 
@@ -43,6 +44,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [duration, setDuration] = useState(0)
 
   useAudioElement(audioRef, episode)
+  usePositionPersistence(audioRef, episode)
 
   const play = useCallback(() => {
     audioRef.current?.play().catch(() => {
@@ -84,9 +86,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setDuration(0)
   }, [])
 
-  // Wait for loadedmetadata before honoring a saved resume position (set on
-  // audio.currentTime any earlier is unreliable across browsers). Phase 1 has
-  // no persisted position yet; this is the hook point Phase 2 wires into.
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return

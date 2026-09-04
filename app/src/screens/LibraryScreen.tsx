@@ -1,33 +1,68 @@
-import { usePlayer } from '../player/PlayerContext'
-import { MOCK_EPISODES, MOCK_PODCAST_TITLE } from '../mockEpisodes'
+import { useEffect, useState, type FormEvent } from 'react'
+import type { Podcast } from '../types'
+import { listSubscriptions } from '../data/subscriptions'
+import { subscribeToFeed } from '../feeds/feedFetcher'
+import { PodcastCard } from '../components/PodcastCard'
 
-// Phase 1 stand-in: lists hardcoded episodes to exercise playback.
-// Replaced in Phase 2 with the real subscriptions/episodes list from IndexedDB.
-export function LibraryScreen() {
-  const { episode: currentEpisode, loadEpisode, play } = usePlayer()
+export function LibraryScreen({ onSelectPodcast }: { onSelectPodcast: (feedUrl: string) => void }) {
+  const [subscriptions, setSubscriptions] = useState<Podcast[]>([])
+  const [feedUrlInput, setFeedUrlInput] = useState('')
+  const [isSubscribing, setIsSubscribing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = () => {
+    void listSubscriptions().then(setSubscriptions)
+  }
+
+  useEffect(reload, [])
+
+  const handleSubscribe = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!feedUrlInput.trim()) return
+    setIsSubscribing(true)
+    setError(null)
+    try {
+      await subscribeToFeed(feedUrlInput)
+      setFeedUrlInput('')
+      reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to subscribe to that feed')
+    } finally {
+      setIsSubscribing(false)
+    }
+  }
 
   return (
     <div className="screen">
       <h1 className="screen__title">Library</h1>
-      <ul className="episode-list">
-        {MOCK_EPISODES.map((episode) => (
-          <li key={episode.id}>
-            <button
-              className="episode-row"
-              onClick={() => {
-                loadEpisode(episode, MOCK_PODCAST_TITLE)
-                play()
-              }}
-            >
-              <div className="episode-row__title">
-                {episode.title}
-                {currentEpisode?.id === episode.id && ' 🔊'}
-              </div>
-              <div className="episode-row__subtitle">{episode.description}</div>
-            </button>
-          </li>
-        ))}
-      </ul>
+
+      <form className="subscribe-form" onSubmit={handleSubscribe}>
+        <input
+          type="url"
+          inputMode="url"
+          placeholder="Paste an RSS feed URL"
+          value={feedUrlInput}
+          onChange={(e) => setFeedUrlInput(e.target.value)}
+        />
+        <button type="submit" disabled={isSubscribing}>
+          {isSubscribing ? 'Adding…' : 'Add'}
+        </button>
+      </form>
+      {error && <div className="subscribe-form__error">{error}</div>}
+
+      {subscriptions.length === 0 ? (
+        <p className="screen__empty">No podcasts yet — paste an RSS feed URL above to subscribe.</p>
+      ) : (
+        <div className="podcast-list">
+          {subscriptions.map((podcast) => (
+            <PodcastCard
+              key={podcast.feedUrl}
+              podcast={podcast}
+              onSelect={() => onSelectPodcast(podcast.feedUrl)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
