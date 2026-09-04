@@ -4,6 +4,7 @@ import type { Episode } from '../types'
 interface MediaSessionHandlers {
   onPlay: () => void
   onPause: () => void
+  onStop: () => void
   onSeekBackward: (offsetSec: number) => void
   onSeekForward: (offsetSec: number) => void
   onSeekTo: (positionSec: number) => void
@@ -24,6 +25,7 @@ export function useMediaSession(
 
     navigator.mediaSession.setActionHandler('play', () => handlersRef.current.onPlay())
     navigator.mediaSession.setActionHandler('pause', () => handlersRef.current.onPause())
+    navigator.mediaSession.setActionHandler('stop', () => handlersRef.current.onStop())
     navigator.mediaSession.setActionHandler('seekbackward', (details) =>
       handlersRef.current.onSeekBackward(details.seekOffset ?? SEEK_STEP_SEC),
     )
@@ -39,6 +41,7 @@ export function useMediaSession(
     return () => {
       navigator.mediaSession.setActionHandler('play', null)
       navigator.mediaSession.setActionHandler('pause', null)
+      navigator.mediaSession.setActionHandler('stop', null)
       navigator.mediaSession.setActionHandler('seekbackward', null)
       navigator.mediaSession.setActionHandler('seekforward', null)
       navigator.mediaSession.setActionHandler('seekto', null)

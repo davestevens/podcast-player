@@ -77,6 +77,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [seek],
   )
 
+  const stop = useCallback(() => {
+    pause()
+    seek(0)
+  }, [pause, seek])
+
   const sleepTimer = useSleepTimer(pause)
 
   const loadEpisode = useCallback((nextEpisode: Episode, nextPodcastTitle?: string) => {
@@ -127,6 +132,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   useMediaSession(episode, podcastTitle, {
     onPlay: play,
     onPause: pause,
+    onStop: stop,
     onSeekBackward: (offset) => skip(-offset),
     onSeekForward: (offset) => skip(offset),
     onSeekTo: seek,
