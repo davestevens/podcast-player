@@ -68,11 +68,18 @@ button {
 }
 
 .episode-row {
-  width: 100%;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 14px;
   background: var(--surface);
   border-radius: 12px;
+}
+
+.episode-row__main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
 }
 
 .episode-row__title {
@@ -95,6 +102,31 @@ button {
   overflow: hidden;
 }
 
+.download-button {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.download-button--busy {
+  opacity: 0.6;
+}
+
+.download-button--complete {
+  color: var(--accent);
+}
+
+.download-button--error {
+  color: #ff7675;
+}
+
 .screen__empty {
   color: var(--text-dim);
 }
@@ -109,6 +141,12 @@ button {
 
 .screen__header .screen__title {
   margin: 0;
+}
+
+.screen__storage {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
 }
 
 .screen__back {

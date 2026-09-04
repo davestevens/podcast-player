@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PlayerProvider, usePlayer } from './player/PlayerContext'
 import { LibraryScreen } from './screens/LibraryScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
 import { PodcastScreen } from './screens/PodcastScreen'
 import { NowPlayingScreen } from './screens/NowPlayingScreen'
 import { MiniPlayer } from './components/MiniPlayer'
+import { requestPersistentStorage } from './storage'
 
 type View = { name: 'library' } | { name: 'discover' } | { name: 'podcast'; feedUrl: string }
 
@@ -14,6 +15,10 @@ function AppShell() {
   const [playerExpanded, setPlayerExpanded] = useState(false)
 
   const showTabBar = view.name === 'library' || view.name === 'discover'
+
+  useEffect(() => {
+    void requestPersistentStorage()
+  }, [])
 
   return (
     <div className="app">

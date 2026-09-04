@@ -58,5 +58,15 @@ npm run dev   # reads VITE_PROXY_BASE_URL from app/.env.development
   end-to-end against local JSON fixtures standing in for those responses.
   **A real-network pass is needed** to confirm the trending endpoint's exact
   URL/shape still matches once you have normal internet access.
-- Next: **Phase 4** — offline downloads. See the project plan for the full
-  phased build order.
+- **Phase 4** (offline downloads, storage persistence + usage display) —
+  done. Episode audio is fetched directly from the CDN (no proxy) into a
+  `Blob` stored in IndexedDB; playback prefers the local blob over the
+  remote URL whenever one exists. Verified end-to-end with a real fixture
+  audio file: download → reload (record persists) → block all network to
+  the source host → downloaded episode still plays correctly from the blob,
+  while a non-downloaded episode correctly fails with no network. Real
+  podcast CDNs may behave differently (CORS support for reading response
+  bytes isn't guaranteed the way plain `<audio>` playback is) — worth
+  testing against a few real feeds once you have normal network access.
+- Next: **Phase 5** — MediaSession/background polish and a final real-device
+  pass. See the project plan for the full phased build order.

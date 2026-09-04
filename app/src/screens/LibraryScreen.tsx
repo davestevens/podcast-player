@@ -3,18 +3,27 @@ import type { Podcast } from '../types'
 import { listSubscriptions } from '../data/subscriptions'
 import { subscribeToFeed } from '../feeds/feedFetcher'
 import { PodcastCard } from '../components/PodcastCard'
+import { getStorageEstimate } from '../storage'
+import { formatBytes } from '../format'
 
 export function LibraryScreen({ onSelectPodcast }: { onSelectPodcast: (feedUrl: string) => void }) {
   const [subscriptions, setSubscriptions] = useState<Podcast[]>([])
   const [feedUrlInput, setFeedUrlInput] = useState('')
   const [isSubscribing, setIsSubscribing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [storageUsage, setStorageUsage] = useState<string | null>(null)
 
   const reload = () => {
     void listSubscriptions().then(setSubscriptions)
   }
 
   useEffect(reload, [])
+
+  useEffect(() => {
+    void getStorageEstimate().then((estimate) => {
+      if (estimate) setStorageUsage(formatBytes(estimate.usageBytes))
+    })
+  }, [])
 
   const handleSubscribe = async (e: FormEvent) => {
     e.preventDefault()
@@ -34,7 +43,10 @@ export function LibraryScreen({ onSelectPodcast }: { onSelectPodcast: (feedUrl: 
 
   return (
     <div className="screen">
-      <h1 className="screen__title">Library</h1>
+      <div className="screen__header">
+        <h1 className="screen__title">Library</h1>
+        {storageUsage && <span className="screen__storage">{storageUsage} used</span>}
+      </div>
 
       <form className="subscribe-form" onSubmit={handleSubscribe}>
         <input

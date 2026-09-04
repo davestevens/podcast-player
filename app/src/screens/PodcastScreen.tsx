@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import type { Episode, PlaybackState, Podcast } from '../types'
+import type { DownloadRecord, Episode, PlaybackState, Podcast } from '../types'
 import { getSubscription } from '../data/subscriptions'
 import { listEpisodesForFeed } from '../data/episodes'
 import { getPlaybackState } from '../data/playbackState'
+import { getDownload } from '../data/downloads'
 import { subscribeToFeed } from '../feeds/feedFetcher'
 import { usePlayer } from '../player/PlayerContext'
 import { EpisodeRow } from '../components/EpisodeRow'
@@ -12,6 +13,7 @@ export function PodcastScreen({ feedUrl, onBack }: { feedUrl: string; onBack: ()
   const [podcast, setPodcast] = useState<Podcast | null>(null)
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [playbackStates, setPlaybackStates] = useState<Record<string, PlaybackState>>({})
+  const [downloads, setDownloads] = useState<Record<string, DownloadRecord>>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const reload = async () => {
@@ -29,6 +31,14 @@ export function PodcastScreen({ feedUrl, onBack }: { feedUrl: string; onBack: ()
       if (state) statesById[episode.id] = state
     })
     setPlaybackStates(statesById)
+
+    const downloadRecords = await Promise.all(loadedEpisodes.map((episode) => getDownload(episode.id)))
+    const downloadsById: Record<string, DownloadRecord> = {}
+    loadedEpisodes.forEach((episode, i) => {
+      const record = downloadRecords[i]
+      if (record) downloadsById[episode.id] = record
+    })
+    setDownloads(downloadsById)
   }
 
   useEffect(() => {
@@ -68,11 +78,13 @@ export function PodcastScreen({ feedUrl, onBack }: { feedUrl: string; onBack: ()
               <EpisodeRow
                 episode={episode}
                 playbackState={playbackStates[episode.id]}
+                downloadRecord={downloads[episode.id]}
                 isCurrent={currentEpisode?.id === episode.id}
                 onPlay={() => {
                   loadEpisode(episode, podcast?.title)
                   play()
                 }}
+                onDownloadChange={() => void reload()}
               />
             </li>
           ))}
