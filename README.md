@@ -6,7 +6,7 @@ both Android and iOS.
 ## Structure
 
 - `app/` — Vite + React + TypeScript PWA (deployed to GitHub Pages)
-- `proxy/` — Cloudflare Worker CORS proxy for RSS feeds and (from Phase 3) the iTunes API
+- `proxy/` — Cloudflare Worker CORS proxy for RSS feeds and the iTunes API
 
 ## Development
 
@@ -49,5 +49,14 @@ npm run dev   # reads VITE_PROXY_BASE_URL from app/.env.development
   playback position + played-state) — done. Verified end-to-end against a
   local fixture feed through the proxy; verifying against real-world podcast
   RSS feeds and the deployed proxy is still worth a manual pass.
-- Next: **Phase 3** — discovery via the iTunes API. See the project plan for
-  the full phased build order.
+- **Phase 3** (discovery via the iTunes API — search, trending, subscribe
+  from either) — done. The proxy's `/itunes/search`, `/itunes/trending`,
+  `/itunes/lookup` routes are implemented against Apple's documented/
+  community-known endpoint shapes but not verified against the real API (no
+  outbound access to `itunes.apple.com` from the build environment); the
+  app-level pipeline (parsing, Discover UI, subscribe flow) was verified
+  end-to-end against local JSON fixtures standing in for those responses.
+  **A real-network pass is needed** to confirm the trending endpoint's exact
+  URL/shape still matches once you have normal internet access.
+- Next: **Phase 4** — offline downloads. See the project plan for the full
+  phased build order.

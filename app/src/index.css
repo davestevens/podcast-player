@@ -46,7 +46,7 @@ button {
 .app__content {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 90px; /* leave room for the mini player */
+  padding-bottom: 150px; /* room for the mini player stacked above the tab bar, worst case */
 }
 
 .screen {
@@ -189,6 +189,39 @@ button {
   color: var(--text-dim);
 }
 
+.screen__subheading {
+  font-size: 1rem;
+  color: var(--text-dim);
+  margin: 4px 0 8px;
+}
+
+.discover-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.discover-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.discover-card__subscribe {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  background: var(--accent);
+  border-radius: 999px;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.discover-card__subscribe:disabled {
+  opacity: 0.6;
+}
+
 /* Mini player */
 .mini-player {
   position: fixed;
@@ -204,6 +237,37 @@ button {
   background: var(--surface-raised);
   border-top: 1px solid var(--border);
   overflow: hidden;
+}
+
+.mini-player--lifted {
+  bottom: 56px; /* sits above the tab bar instead of at the very bottom */
+}
+
+/* Tab bar */
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-bar__item {
+  flex: 1;
+  padding: 14px 0;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.tab-bar__item--active {
+  color: var(--text);
+  font-weight: 600;
 }
 
 .mini-player__progress {

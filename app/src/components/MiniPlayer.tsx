@@ -1,7 +1,13 @@
 import { usePlayer } from '../player/PlayerContext'
 import { formatTime } from '../format'
 
-export function MiniPlayer({ onExpand }: { onExpand: () => void }) {
+export function MiniPlayer({
+  onExpand,
+  liftedAboveTabBar,
+}: {
+  onExpand: () => void
+  liftedAboveTabBar?: boolean
+}) {
   const { episode, podcastTitle, isPlaying, position, duration, togglePlay } = usePlayer()
 
   if (!episode) return null
@@ -9,7 +15,11 @@ export function MiniPlayer({ onExpand }: { onExpand: () => void }) {
   const progress = duration > 0 ? position / duration : 0
 
   return (
-    <button className="mini-player" onClick={onExpand} aria-label="Expand player">
+    <button
+      className={`mini-player${liftedAboveTabBar ? ' mini-player--lifted' : ''}`}
+      onClick={onExpand}
+      aria-label="Expand player"
+    >
       <div className="mini-player__progress" style={{ transform: `scaleX(${progress})` }} />
       <div className="mini-player__info">
         <div className="mini-player__title">{episode.title}</div>
