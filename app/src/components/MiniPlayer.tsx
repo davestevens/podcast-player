@@ -8,7 +8,7 @@ export function MiniPlayer({
   onExpand: () => void
   liftedAboveTabBar?: boolean
 }) {
-  const { episode, podcastTitle, isPlaying, position, duration, togglePlay } = usePlayer()
+  const { episode, podcastTitle, isPlaying, position, duration, playbackError, togglePlay } = usePlayer()
 
   if (!episode) return null
 
@@ -24,7 +24,13 @@ export function MiniPlayer({
       <div className="mini-player__info">
         <div className="mini-player__title">{episode.title}</div>
         <div className="mini-player__subtitle">
-          {podcastTitle} · {formatTime(position)} / {formatTime(duration)}
+          {playbackError ? (
+            <span className="mini-player__error">⚠ {playbackError}</span>
+          ) : (
+            <>
+              {podcastTitle} · {formatTime(position)} / {formatTime(duration)}
+            </>
+          )}
         </div>
       </div>
       <div

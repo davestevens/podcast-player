@@ -116,7 +116,22 @@ button {
 }
 
 .download-button--busy {
-  opacity: 0.6;
+  opacity: 1;
+}
+
+.download-button__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  animation: download-spin 0.7s linear infinite;
+}
+
+@keyframes download-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .download-button--complete {
@@ -336,6 +351,10 @@ button {
   color: var(--text-dim);
 }
 
+.mini-player__error {
+  color: #ff7675;
+}
+
 .mini-player__play {
   font-size: 1.4rem;
   width: 40px;
@@ -382,6 +401,16 @@ button {
 .now-playing__subtitle {
   color: var(--text-dim);
   margin-bottom: 32px;
+}
+
+.now-playing__error {
+  color: #ff7675;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  text-align: center;
+  margin: -20px 0 20px;
 }
 
 .now-playing__seek {

@@ -4,7 +4,7 @@ import { formatTime } from '../format'
 import { SleepTimerSheet } from '../components/SleepTimerSheet'
 
 export function NowPlayingScreen({ onClose }: { onClose: () => void }) {
-  const { episode, podcastTitle, isPlaying, position, duration, togglePlay, seek, skip, sleepTimer } =
+  const { episode, podcastTitle, isPlaying, position, duration, playbackError, togglePlay, seek, skip, sleepTimer } =
     usePlayer()
   const [showSleepTimer, setShowSleepTimer] = useState(false)
 
@@ -20,6 +20,8 @@ export function NowPlayingScreen({ onClose }: { onClose: () => void }) {
 
       <h1 className="now-playing__title">{episode.title}</h1>
       <div className="now-playing__subtitle">{podcastTitle}</div>
+
+      {playbackError && <div className="now-playing__error">⚠ {playbackError}</div>}
 
       <div className="now-playing__seek">
         <input

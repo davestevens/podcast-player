@@ -9,7 +9,7 @@ import { usePlayer } from '../player/PlayerContext'
 import { EpisodeRow } from '../components/EpisodeRow'
 
 export function PodcastScreen({ feedUrl, onBack }: { feedUrl: string; onBack: () => void }) {
-  const { episode: currentEpisode, loadEpisode, play } = usePlayer()
+  const { episode: currentEpisode, loadEpisode } = usePlayer()
   const [podcast, setPodcast] = useState<Podcast | null>(null)
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [playbackStates, setPlaybackStates] = useState<Record<string, PlaybackState>>({})
@@ -80,10 +80,7 @@ export function PodcastScreen({ feedUrl, onBack }: { feedUrl: string; onBack: ()
                 playbackState={playbackStates[episode.id]}
                 downloadRecord={downloads[episode.id]}
                 isCurrent={currentEpisode?.id === episode.id}
-                onPlay={() => {
-                  loadEpisode(episode, podcast?.title)
-                  play()
-                }}
+                onPlay={() => loadEpisode(episode, podcast?.title, { autoplay: true })}
                 onDownloadChange={() => void reload()}
               />
             </li>

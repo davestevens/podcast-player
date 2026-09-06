@@ -34,8 +34,8 @@ export function DownloadButton({
 
   if (isDownloading) {
     return (
-      <span className="download-button download-button--busy" aria-label="Downloading">
-        ⋯
+      <span className="download-button download-button--busy" role="status" aria-label="Downloading">
+        <span className="download-button__spinner" />
       </span>
     )
   }

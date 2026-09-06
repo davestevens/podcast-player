@@ -18,7 +18,8 @@ interface PlayerValue {
   isPlaying: boolean
   position: number
   duration: number
-  loadEpisode: (episode: Episode, podcastTitle?: string) => void
+  playbackError: string | null
+  loadEpisode: (episode: Episode, podcastTitle?: string, options?: { autoplay?: boolean }) => void
   play: () => void
   pause: () => void
   togglePlay: () => void
@@ -42,9 +43,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [position, setPosition] = useState(0)
   const [duration, setDuration] = useState(0)
-
-  useAudioElement(audioRef, episode)
-  usePositionPersistence(audioRef, episode)
+  const [playbackError, setPlaybackError] = useState<string | null>(null)
 
   const play = useCallback(() => {
     audioRef.current?.play().catch(() => {
@@ -52,6 +51,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // isPlaying stays in sync via the element's own 'pause' event.
     })
   }, [])
+
+  // loadEpisode() and play() are called back-to-back from screens, but
+  // useAudioElement sets audio.src asynchronously (it looks up IndexedDB for
+  // a downloaded blob first) -- calling play() immediately would race an
+  // element that has no source yet and silently do nothing. This flag defers
+  // the actual play() call until useAudioElement reports the source is set.
+  const shouldAutoplayRef = useRef(false)
+  const handleSourceReady = useCallback(() => {
+    if (shouldAutoplayRef.current) {
+      shouldAutoplayRef.current = false
+      play()
+    }
+  }, [play])
+
+  useAudioElement(audioRef, episode, handleSourceReady)
+  usePositionPersistence(audioRef, episode)
 
   const pause = useCallback(() => {
     audioRef.current?.pause()
@@ -84,12 +99,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const sleepTimer = useSleepTimer(pause)
 
-  const loadEpisode = useCallback((nextEpisode: Episode, nextPodcastTitle?: string) => {
-    setEpisode(nextEpisode)
-    setPodcastTitle(nextPodcastTitle)
-    setPosition(0)
-    setDuration(0)
-  }, [])
+  const loadEpisode = useCallback(
+    (nextEpisode: Episode, nextPodcastTitle?: string, options?: { autoplay?: boolean }) => {
+      shouldAutoplayRef.current = options?.autoplay ?? false
+      setEpisode(nextEpisode)
+      setPodcastTitle(nextPodcastTitle)
+      setPosition(0)
+      setDuration(0)
+      setPlaybackError(null)
+    },
+    [],
+  )
 
   useEffect(() => {
     const audio = audioRef.current
@@ -102,6 +122,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
     const onPlay = () => {
       setIsPlaying(true)
+      setPlaybackError(null)
       setMediaSessionPlaybackState(true)
     }
     const onPause = () => {
@@ -112,12 +133,26 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setIsPlaying(false)
       sleepTimer.notifyEpisodeEnded()
     }
+    const onError = () => {
+      setIsPlaying(false)
+      const code = audio.error?.code
+      const message =
+        code === MediaError.MEDIA_ERR_NETWORK
+          ? 'Network error loading audio'
+          : code === MediaError.MEDIA_ERR_DECODE
+            ? 'This audio could not be played (unsupported/corrupt)'
+            : code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+              ? "Couldn't load this audio (dead link, blocked, or unsupported)"
+              : 'Playback failed'
+      setPlaybackError(message)
+    }
 
     audio.addEventListener('loadedmetadata', onLoadedMetadata)
     audio.addEventListener('timeupdate', onTimeUpdate)
     audio.addEventListener('play', onPlay)
     audio.addEventListener('pause', onPause)
     audio.addEventListener('ended', onEnded)
+    audio.addEventListener('error', onError)
 
     return () => {
       audio.removeEventListener('loadedmetadata', onLoadedMetadata)
@@ -125,6 +160,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audio.removeEventListener('play', onPlay)
       audio.removeEventListener('pause', onPause)
       audio.removeEventListener('ended', onEnded)
+      audio.removeEventListener('error', onError)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [episode])
@@ -145,6 +181,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       isPlaying,
       position,
       duration,
+      playbackError,
       loadEpisode,
       play,
       pause,
@@ -165,6 +202,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       isPlaying,
       position,
       duration,
+      playbackError,
       loadEpisode,
       play,
       pause,

@@ -105,7 +105,7 @@ function fetchItunesSearch(term: string, ctx: ExecutionContext): Promise<Respons
 // iTunes id, not a feedUrl -- see fetchItunesLookup for resolving one to a
 // subscribable feed. Hardcoded to the "us" storefront for v1.
 function fetchItunesTrending(ctx: ExecutionContext): Promise<Response> {
-  const upstreamUrl = 'https://rss.applemarketingtools.com/api/v2/us/podcasts/top/25/podcasts.json'
+  const upstreamUrl = 'https://rss.marketingtools.apple.com/api/v2/us/podcasts/top/25/podcasts.json'
   return cachedFetch('/itunes/trending', upstreamUrl, 'application/json; charset=utf-8', CACHE_TTL_SECONDS.itunesTrending, ctx)
 }
 
