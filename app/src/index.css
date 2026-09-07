@@ -116,6 +116,27 @@ button {
   color: var(--accent);
 }
 
+.episode-row__main--played {
+  opacity: 0.55;
+}
+
+.played-toggle {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.played-toggle--played {
+  color: var(--accent);
+}
+
 /* Shared show-artwork renderer (components/Artwork.tsx) -- per-context
    classes below only set size/radius, never background (the placeholder
    gradient lives here once). */

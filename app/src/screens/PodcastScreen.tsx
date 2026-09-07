@@ -111,6 +111,7 @@ export function PodcastScreen({ feedUrl, onBack }: { feedUrl: string; onBack: ()
                 isCurrent={currentEpisode?.id === episode.id}
                 onPlay={() => loadEpisode(episode, podcast?.title, { autoplay: true })}
                 onDownloadChange={() => void reload()}
+                onPlayedChange={() => void reload()}
               />
             </li>
           ))}

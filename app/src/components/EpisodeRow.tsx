@@ -1,6 +1,7 @@
 import type { DownloadRecord, Episode, PlaybackState } from '../types'
 import { formatDate, formatTime } from '../format'
 import { DownloadButton } from './DownloadButton'
+import { PlayedToggle } from './PlayedToggle'
 import { sanitizeDescriptionHtml } from '../sanitize'
 
 export function EpisodeRow({
@@ -10,6 +11,7 @@ export function EpisodeRow({
   isCurrent,
   onPlay,
   onDownloadChange,
+  onPlayedChange,
   podcastTitle,
 }: {
   episode: Episode
@@ -18,17 +20,22 @@ export function EpisodeRow({
   isCurrent: boolean
   onPlay: () => void
   onDownloadChange: () => void
+  onPlayedChange: () => void
   // Shown above the episode title -- only useful in cross-podcast lists
   // (e.g. DownloadsScreen); PodcastScreen already has the podcast title in
   // its own header, so it leaves this unset.
   podcastTitle?: string
 }) {
   const duration = playbackState?.durationSec ?? episode.durationSec
-  const inProgress = !playbackState?.played && (playbackState?.positionSec ?? 0) > 0
+  const isPlayed = playbackState?.played ?? false
+  const inProgress = !isPlayed && (playbackState?.positionSec ?? 0) > 0
 
   return (
     <div className="episode-row">
-      <button className="episode-row__main" onClick={onPlay}>
+      <button
+        className={`episode-row__main${isPlayed ? ' episode-row__main--played' : ''}`}
+        onClick={onPlay}
+      >
         {podcastTitle && <div className="episode-row__podcast">{podcastTitle}</div>}
         <div className="episode-row__title">
           {episode.title}
@@ -37,7 +44,7 @@ export function EpisodeRow({
         <div className="episode-row__meta">
           {formatDate(episode.pubDate)}
           {duration ? ` · ${formatTime(duration)}` : ''}
-          {playbackState?.played && ' · Played'}
+          {isPlayed && ' · Played'}
           {inProgress && ` · ${formatTime(playbackState?.positionSec ?? 0)} in`}
           {downloadRecord?.status === 'complete' && ' · Downloaded'}
         </div>
@@ -48,6 +55,7 @@ export function EpisodeRow({
           />
         )}
       </button>
+      <PlayedToggle episodeId={episode.id} playbackState={playbackState} onChange={onPlayedChange} />
       <DownloadButton episode={episode} downloadRecord={downloadRecord} onChange={onDownloadChange} />
     </div>
   )

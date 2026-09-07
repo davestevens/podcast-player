@@ -71,6 +71,7 @@ export function DownloadsScreen({ onBack }: { onBack: () => void }) {
                 isCurrent={currentEpisode?.id === episode.id}
                 onPlay={() => loadEpisode(episode, podcastTitle, { autoplay: true })}
                 onDownloadChange={() => void reload()}
+                onPlayedChange={() => void reload()}
               />
             </li>
           ))}
