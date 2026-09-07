@@ -1,5 +1,6 @@
 import { usePlayer } from '../player/PlayerContext'
 import { formatTime } from '../format'
+import { Artwork } from './Artwork'
 
 export function MiniPlayer({
   onExpand,
@@ -21,6 +22,7 @@ export function MiniPlayer({
       aria-label="Expand player"
     >
       <div className="mini-player__progress" style={{ transform: `scaleX(${progress})` }} />
+      <Artwork src={episode.artworkUrl} className="mini-player__art" />
       <div className="mini-player__info">
         <div className="mini-player__title">{episode.title}</div>
         <div className="mini-player__subtitle">

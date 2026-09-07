@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { DiscoverResult } from '../itunes/itunesApi'
 import { getTrendingPodcasts, resolveFeedUrl, searchPodcasts } from '../itunes/itunesApi'
 import { subscribeToFeed } from '../feeds/feedFetcher'
+import { Artwork } from '../components/Artwork'
 
 export function DiscoverScreen() {
   const [term, setTerm] = useState('')
@@ -79,6 +80,7 @@ export function DiscoverScreen() {
             const isSubscribed = subscribedIds.has(result.itunesId)
             return (
               <div key={result.itunesId} className="discover-card">
+                <Artwork src={result.artworkUrl} className="discover-card__art" />
                 <div className="discover-card__info">
                   <div className="podcast-card__title">{result.title}</div>
                   {result.artist && <div className="podcast-card__subtitle">{result.artist}</div>}

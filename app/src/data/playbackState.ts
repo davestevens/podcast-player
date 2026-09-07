@@ -25,6 +25,11 @@ export async function savePosition(episodeId: string, positionSec: number, durat
   })
 }
 
+export async function deletePlaybackState(episodeId: string): Promise<void> {
+  const db = await getDb()
+  await db.delete('playbackState', episodeId)
+}
+
 export async function setPlayed(episodeId: string, played: boolean): Promise<void> {
   const db = await getDb()
   const existing = await db.get('playbackState', episodeId)

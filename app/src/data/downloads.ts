@@ -6,6 +6,12 @@ export async function getDownload(episodeId: string): Promise<DownloadRecord | u
   return db.get('downloads', episodeId)
 }
 
+export async function listDownloads(): Promise<DownloadRecord[]> {
+  const db = await getDb()
+  const all = await db.getAll('downloads')
+  return all.sort((a, b) => b.downloadedAt - a.downloadedAt)
+}
+
 export async function deleteDownload(episodeId: string): Promise<void> {
   const db = await getDb()
   await db.delete('downloads', episodeId)

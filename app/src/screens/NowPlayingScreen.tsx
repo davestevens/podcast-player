@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { usePlayer, SKIP_STEP_SEC } from '../player/PlayerContext'
 import { formatTime } from '../format'
 import { SleepTimerSheet } from '../components/SleepTimerSheet'
+import { Artwork } from '../components/Artwork'
 
 export function NowPlayingScreen({ onClose }: { onClose: () => void }) {
   const { episode, podcastTitle, isPlaying, position, duration, playbackError, togglePlay, seek, skip, sleepTimer } =
@@ -16,7 +17,7 @@ export function NowPlayingScreen({ onClose }: { onClose: () => void }) {
         ⌄
       </button>
 
-      <div className="now-playing__art" aria-hidden="true" />
+      <Artwork src={episode.artworkUrl} className="now-playing__art" />
 
       <h1 className="now-playing__title">{episode.title}</h1>
       <div className="now-playing__subtitle">{podcastTitle}</div>

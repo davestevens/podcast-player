@@ -82,6 +82,12 @@ button {
   text-align: left;
 }
 
+.episode-row__podcast {
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
 .episode-row__title {
   font-weight: 600;
 }
@@ -100,6 +106,27 @@ button {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.episode-row__subtitle p {
+  margin: 0 0 4px;
+}
+
+.episode-row__subtitle a {
+  color: var(--accent);
+}
+
+/* Shared show-artwork renderer (components/Artwork.tsx) -- per-context
+   classes below only set size/radius, never background (the placeholder
+   gradient lives here once). */
+.artwork {
+  display: block;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.artwork--placeholder {
+  background: linear-gradient(135deg, var(--accent), #2d3436);
 }
 
 .download-button {
@@ -182,6 +209,53 @@ button {
   opacity: 0.6;
 }
 
+/* Podcast screen header + actions */
+.podcast-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.podcast-header__art {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+}
+
+.podcast-header__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.podcast-header__info .screen__title {
+  margin: 0;
+}
+
+.podcast-header__author {
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.podcast-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.podcast-actions__remove {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: 999px;
+  color: #ff7675;
+}
+
+.podcast-actions__remove:disabled {
+  opacity: 0.6;
+}
+
 /* Subscribe form */
 .subscribe-form {
   display: flex;
@@ -226,10 +300,24 @@ button {
 
 .podcast-card {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   text-align: left;
   padding: 14px;
   background: var(--surface);
   border-radius: 12px;
+}
+
+.podcast-card__art {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+}
+
+.podcast-card__info {
+  flex: 1;
+  min-width: 0;
 }
 
 .podcast-card__title {
@@ -255,6 +343,12 @@ button {
   padding: 14px;
   background: var(--surface);
   border-radius: 12px;
+}
+
+.discover-card__art {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
 }
 
 .discover-card__info {
@@ -333,6 +427,12 @@ button {
   transform-origin: left;
 }
 
+.mini-player__art {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
 .mini-player__info {
   flex: 1;
   min-width: 0;
@@ -388,7 +488,6 @@ button {
   width: min(70vw, 320px);
   aspect-ratio: 1;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent), #2d3436);
   margin: 24px 0;
 }
 

@@ -6,7 +6,13 @@ import { PodcastCard } from '../components/PodcastCard'
 import { getStorageEstimate } from '../storage'
 import { formatBytes } from '../format'
 
-export function LibraryScreen({ onSelectPodcast }: { onSelectPodcast: (feedUrl: string) => void }) {
+export function LibraryScreen({
+  onSelectPodcast,
+  onOpenDownloads,
+}: {
+  onSelectPodcast: (feedUrl: string) => void
+  onOpenDownloads: () => void
+}) {
   const [subscriptions, setSubscriptions] = useState<Podcast[]>([])
   const [feedUrlInput, setFeedUrlInput] = useState('')
   const [isSubscribing, setIsSubscribing] = useState(false)
@@ -45,7 +51,9 @@ export function LibraryScreen({ onSelectPodcast }: { onSelectPodcast: (feedUrl: 
     <div className="screen">
       <div className="screen__header">
         <h1 className="screen__title">Library</h1>
-        {storageUsage && <span className="screen__storage">{storageUsage} used</span>}
+        <button className="screen__storage" onClick={onOpenDownloads}>
+          {storageUsage ? `${storageUsage} used` : 'Downloads'}
+        </button>
       </div>
 
       <form className="subscribe-form" onSubmit={handleSubscribe}>

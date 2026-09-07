@@ -3,11 +3,16 @@ import { PlayerProvider, usePlayer } from './player/PlayerContext'
 import { LibraryScreen } from './screens/LibraryScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
 import { PodcastScreen } from './screens/PodcastScreen'
+import { DownloadsScreen } from './screens/DownloadsScreen'
 import { NowPlayingScreen } from './screens/NowPlayingScreen'
 import { MiniPlayer } from './components/MiniPlayer'
 import { requestPersistentStorage } from './storage'
 
-type View = { name: 'library' } | { name: 'discover' } | { name: 'podcast'; feedUrl: string }
+type View =
+  | { name: 'library' }
+  | { name: 'discover' }
+  | { name: 'podcast'; feedUrl: string }
+  | { name: 'downloads' }
 
 function AppShell() {
   const { episode } = usePlayer()
@@ -24,12 +29,16 @@ function AppShell() {
     <div className="app">
       <main className="app__content">
         {view.name === 'library' && (
-          <LibraryScreen onSelectPodcast={(feedUrl) => setView({ name: 'podcast', feedUrl })} />
+          <LibraryScreen
+            onSelectPodcast={(feedUrl) => setView({ name: 'podcast', feedUrl })}
+            onOpenDownloads={() => setView({ name: 'downloads' })}
+          />
         )}
         {view.name === 'discover' && <DiscoverScreen />}
         {view.name === 'podcast' && (
           <PodcastScreen feedUrl={view.feedUrl} onBack={() => setView({ name: 'library' })} />
         )}
+        {view.name === 'downloads' && <DownloadsScreen onBack={() => setView({ name: 'library' })} />}
       </main>
 
       {episode && !playerExpanded && (
