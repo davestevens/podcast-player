@@ -2,10 +2,10 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// GitHub Pages serves this project site from /test/ (davestevens.github.io/test/),
+// GitHub Pages serves this project site from /podcast-player/ (davestevens.github.io/podcast-player/),
 // not a custom domain -- base must match so asset paths and the PWA manifest
 // scope/start_url resolve correctly once deployed.
-const base = '/test/'
+const base = '/podcast-player/'
 
 // https://vite.dev/config/
 export default defineConfig({

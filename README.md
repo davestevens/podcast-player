@@ -29,8 +29,8 @@ npm run dev   # reads VITE_PROXY_BASE_URL from app/.env.development
 
 - **App → GitHub Pages** via `.github/workflows/deploy-app.yml` on push to
   `main`. One-time manual setup: repo **Settings → Pages → Source = GitHub
-  Actions**. Served at `/test/` (GitHub Pages project-site path for this
-  repo), which is why `vite.config.ts` sets `base: '/test/'`.
+  Actions**. Served at `/podcast-player/` (GitHub Pages project-site path for this
+  repo), which is why `vite.config.ts` sets `base: '/podcast-player/'`.
 - **Proxy → Cloudflare Workers** via `.github/workflows/deploy-proxy.yml`.
   Needs a one-time `wrangler login` from a real Cloudflare account and a
   `CLOUDFLARE_API_TOKEN` repo secret before this workflow can deploy
