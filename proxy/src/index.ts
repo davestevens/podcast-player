@@ -101,11 +101,18 @@ function fetchItunesSearch(term: string, ctx: ExecutionContext): Promise<Respons
   )
 }
 
-// Apple's marketing-tools top-podcasts feed. Entries here carry only an
-// iTunes id, not a feedUrl -- see fetchItunesLookup for resolving one to a
-// subscribable feed. Hardcoded to the "us" storefront for v1.
+// Top-podcasts chart. rss.marketingtools.apple.com (Apple's newer chart API)
+// sits behind bot-protection that 403s Cloudflare Workers' fetch() outright
+// -- confirmed by comparing curl (200, any User-Agent) against the exact
+// same request run through workerd locally (403 regardless of headers),
+// while itunes.apple.com/search succeeds through workerd fine. So this uses
+// the older iTunes RSS Generator endpoint instead, which lives on
+// itunes.apple.com itself (same host /search and /lookup already work
+// against) and returns a different JSON shape (feed.entry[], not
+// feed.results[]) -- see itunesApi.ts's mapper. genre=1310 is "Podcasts"
+// (top-level chart, no genre filter). Hardcoded to the "us" storefront for v1.
 function fetchItunesTrending(ctx: ExecutionContext): Promise<Response> {
-  const upstreamUrl = 'https://rss.marketingtools.apple.com/api/v2/us/podcasts/top/25/podcasts.json'
+  const upstreamUrl = 'https://itunes.apple.com/us/rss/toppodcasts/limit=25/genre=1310/json'
   return cachedFetch('/itunes/trending', upstreamUrl, 'application/json; charset=utf-8', CACHE_TTL_SECONDS.itunesTrending, ctx)
 }
 

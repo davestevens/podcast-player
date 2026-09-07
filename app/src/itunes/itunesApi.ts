@@ -1,6 +1,6 @@
 // Normalized discovery result -- keeps DiscoverScreen ignorant of Apple's
-// raw JSON shapes, which differ between the Search API and the marketing-
-// tools trending feed (see the two mappers below).
+// raw JSON shapes, which differ between the Search API and the legacy RSS
+// Generator trending endpoint (see the two mappers below).
 export interface DiscoverResult {
   itunesId: number
   title: string
@@ -24,15 +24,19 @@ interface ItunesSearchResponse {
   results: ItunesSearchResult[]
 }
 
-interface ItunesTrendingResult {
-  id: string
-  name: string
-  artistName?: string
-  artworkUrl100?: string
+// The old iTunes RSS Generator's JSON shape (feed.entry[]) -- used instead
+// of Apple's newer rss.marketingtools.apple.com chart API, which 403s
+// Cloudflare Workers' fetch() outright (see the proxy's fetchItunesTrending
+// for why). Field names carry the feed's original "im:" namespace prefix.
+interface ItunesTrendingEntry {
+  'im:name': { label: string }
+  'im:artist'?: { label: string }
+  'im:image'?: { label: string }[]
+  id: { attributes: { 'im:id': string } }
 }
 
 interface ItunesTrendingResponse {
-  feed: { results: ItunesTrendingResult[] }
+  feed: { entry: ItunesTrendingEntry[] }
 }
 
 const PROXY_BASE_URL = import.meta.env.VITE_PROXY_BASE_URL
@@ -58,12 +62,13 @@ export async function getTrendingPodcasts(): Promise<DiscoverResult[]> {
   const response = await fetch(`${PROXY_BASE_URL}/itunes/trending`)
   if (!response.ok) throw new Error(`Failed to load trending podcasts (HTTP ${response.status})`)
   const data: ItunesTrendingResponse = await response.json()
-  return data.feed.results.map(
-    (result): DiscoverResult => ({
-      itunesId: Number(result.id),
-      title: result.name,
-      artist: result.artistName,
-      artworkUrl: result.artworkUrl100,
+  return data.feed.entry.map(
+    (entry): DiscoverResult => ({
+      itunesId: Number(entry.id.attributes['im:id']),
+      title: entry['im:name'].label,
+      artist: entry['im:artist']?.label,
+      // im:image entries are ordered smallest-to-largest; take the largest.
+      artworkUrl: entry['im:image']?.at(-1)?.label,
     }),
   )
 }
