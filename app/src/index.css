@@ -19,6 +19,12 @@ body,
   height: 100%;
 }
 
+html {
+  /* Bump the base up from the browser default 16px -- every rem-based size
+     in this stylesheet scales with it. */
+  font-size: 112.5%;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -67,6 +73,20 @@ button {
   gap: 8px;
 }
 
+.episode-skeleton {
+  height: 96px;
+  background: var(--surface);
+  border-radius: 12px;
+  opacity: 0.5;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
 .episode-row {
   display: flex;
   align-items: center;
@@ -79,6 +99,11 @@ button {
 .episode-row__main {
   flex: 1;
   min-width: 0;
+}
+
+.episode-row__play {
+  display: block;
+  width: 100%;
   text-align: left;
 }
 
@@ -100,6 +125,9 @@ button {
 
 .episode-row__subtitle {
   margin-top: 4px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
   font-size: 0.85rem;
   color: var(--text-dim);
   display: -webkit-box;
@@ -633,4 +661,46 @@ button {
   padding: 14px;
   margin-top: 12px;
   color: #ff7675;
+}
+
+/* Scrollable variant -- full description sheet */
+.sheet--scroll {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.description-sheet__meta {
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.description-sheet__body {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.description-sheet__body img {
+  height: auto;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.description-sheet__body a {
+  color: var(--accent);
+}
+
+.description-sheet__podcast {
+  margin: -4px 0 16px;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

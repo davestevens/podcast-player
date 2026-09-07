@@ -157,6 +157,11 @@ export default {
       return withCors(await fetchRss(targetUrl, ctx), origin)
     }
 
+    // NOTE: the /itunes/* routes below are no longer called by the app -- it
+    // now hits itunes.apple.com directly (those endpoints send CORS headers),
+    // which spreads discovery load across user IPs instead of this one Worker
+    // IP that Apple was 429-ing. Kept for older deployed clients; safe to
+    // remove once traffic drains.
     if (url.pathname === '/itunes/search') {
       const term = url.searchParams.get('term')?.trim()
       if (!term) {

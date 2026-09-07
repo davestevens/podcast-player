@@ -80,6 +80,12 @@ export function parseFeed(xmlText: string, feedUrl: string): ParsedFeed {
         guid,
         title,
         description: text(item, 'description'),
+        // Full show notes: content:encoded is the richest, then itunes:summary,
+        // falling back to plain <description>.
+        contentHtml:
+          text(item, 'content:encoded') ??
+          text(item, 'itunes:summary') ??
+          text(item, 'description'),
         audioUrl,
         audioType: enclosure.getAttribute('type')?.trim() || undefined,
         durationSec: parseDuration(text(item, 'itunes:duration')),

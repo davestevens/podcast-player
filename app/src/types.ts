@@ -13,7 +13,8 @@ export interface Episode {
   feedUrl: string
   guid: string
   title: string
-  description?: string
+  description?: string // short summary, clamped in the row
+  contentHtml?: string // full show notes (content:encoded / itunes:summary), shown in the details sheet
   audioUrl: string
   audioType?: string
   durationSec?: number

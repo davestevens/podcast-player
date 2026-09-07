@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { DiscoverResult } from '../itunes/itunesApi'
 import { getTrendingPodcasts, resolveFeedUrl, searchPodcasts } from '../itunes/itunesApi'
 import { subscribeToFeed } from '../feeds/feedFetcher'
@@ -12,6 +12,9 @@ export function DiscoverScreen() {
   const [subscribingId, setSubscribingId] = useState<number | null>(null)
   const [subscribedIds, setSubscribedIds] = useState<Set<number>>(new Set())
   const [error, setError] = useState<string | null>(null)
+  // Guards against overlapping searches (debounced typing + an explicit
+  // submit) fanning out concurrent requests to iTunes.
+  const inFlightTerm = useRef<string | null>(null)
 
   useEffect(() => {
     void getTrendingPodcasts()
@@ -19,22 +22,43 @@ export function DiscoverScreen() {
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load trending podcasts'))
   }, [])
 
-  const handleSearch = async (e: FormEvent) => {
-    e.preventDefault()
+  const runSearch = async (raw: string) => {
+    const trimmed = raw.trim()
+    if (!trimmed) {
+      setSearchResults(null)
+      return
+    }
+    if (inFlightTerm.current === trimmed) return
+    inFlightTerm.current = trimmed
+    setIsSearching(true)
+    setError(null)
+    try {
+      const results = await searchPodcasts(trimmed)
+      // Ignore a stale response if the query moved on while we waited.
+      if (term.trim() === trimmed) setSearchResults(results)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Search failed')
+    } finally {
+      inFlightTerm.current = null
+      setIsSearching(false)
+    }
+  }
+
+  // Trailing debounce so each keystroke doesn't hit the API.
+  useEffect(() => {
     const trimmed = term.trim()
     if (!trimmed) {
       setSearchResults(null)
       return
     }
-    setIsSearching(true)
-    setError(null)
-    try {
-      setSearchResults(await searchPodcasts(trimmed))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Search failed')
-    } finally {
-      setIsSearching(false)
-    }
+    const id = setTimeout(() => void runSearch(trimmed), 400)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [term])
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault()
+    void runSearch(term)
   }
 
   const handleSubscribe = async (result: DiscoverResult) => {

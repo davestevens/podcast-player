@@ -6,7 +6,8 @@ import { getSubscription } from '../data/subscriptions'
 import { getPlaybackState } from '../data/playbackState'
 import { usePlayer } from '../player/PlayerContext'
 import { EpisodeRow } from '../components/EpisodeRow'
-import { formatBytes } from '../format'
+import { DescriptionSheet } from '../components/DescriptionSheet'
+import { formatBytes, formatDate } from '../format'
 
 interface DownloadedEpisode {
   episode: Episode
@@ -19,6 +20,7 @@ export function DownloadsScreen({ onBack }: { onBack: () => void }) {
   const { episode: currentEpisode, loadEpisode } = usePlayer()
   const [items, setItems] = useState<DownloadedEpisode[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [detailsEpisode, setDetailsEpisode] = useState<Episode | null>(null)
 
   const reload = async () => {
     const downloads = await listDownloads()
@@ -72,10 +74,20 @@ export function DownloadsScreen({ onBack }: { onBack: () => void }) {
                 onPlay={() => loadEpisode(episode, podcastTitle, { autoplay: true })}
                 onDownloadChange={() => void reload()}
                 onPlayedChange={() => void reload()}
+                onOpenDetails={() => setDetailsEpisode(episode)}
               />
             </li>
           ))}
         </ul>
+      )}
+
+      {detailsEpisode && (
+        <DescriptionSheet
+          title={detailsEpisode.title}
+          meta={formatDate(detailsEpisode.pubDate)}
+          html={detailsEpisode.contentHtml ?? detailsEpisode.description}
+          onClose={() => setDetailsEpisode(null)}
+        />
       )}
     </div>
   )

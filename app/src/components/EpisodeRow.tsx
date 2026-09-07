@@ -12,6 +12,7 @@ export function EpisodeRow({
   onPlay,
   onDownloadChange,
   onPlayedChange,
+  onOpenDetails,
   podcastTitle,
 }: {
   episode: Episode
@@ -21,6 +22,8 @@ export function EpisodeRow({
   onPlay: () => void
   onDownloadChange: () => void
   onPlayedChange: () => void
+  // Opens the full-description sheet for this episode.
+  onOpenDetails: () => void
   // Shown above the episode title -- only useful in cross-podcast lists
   // (e.g. DownloadsScreen); PodcastScreen already has the podcast title in
   // its own header, so it leaves this unset.
@@ -32,29 +35,37 @@ export function EpisodeRow({
 
   return (
     <div className="episode-row">
-      <button
-        className={`episode-row__main${isPlayed ? ' episode-row__main--played' : ''}`}
-        onClick={onPlay}
-      >
-        {podcastTitle && <div className="episode-row__podcast">{podcastTitle}</div>}
-        <div className="episode-row__title">
-          {episode.title}
-          {isCurrent && ' 🔊'}
-        </div>
-        <div className="episode-row__meta">
-          {formatDate(episode.pubDate)}
-          {duration ? ` · ${formatTime(duration)}` : ''}
-          {isPlayed && ' · Played'}
-          {inProgress && ` · ${formatTime(playbackState?.positionSec ?? 0)} in`}
-          {downloadRecord?.status === 'complete' && ' · Downloaded'}
-        </div>
+      <div className={`episode-row__main${isPlayed ? ' episode-row__main--played' : ''}`}>
+        <button className="episode-row__play" onClick={onPlay}>
+          {podcastTitle && <div className="episode-row__podcast">{podcastTitle}</div>}
+          <div className="episode-row__title">
+            {episode.title}
+            {isCurrent && ' 🔊'}
+          </div>
+          <div className="episode-row__meta">
+            {formatDate(episode.pubDate)}
+            {duration ? ` · ${formatTime(duration)}` : ''}
+            {isPlayed && ' · Played'}
+            {inProgress && ` · ${formatTime(playbackState?.positionSec ?? 0)} in`}
+            {downloadRecord?.status === 'complete' && ' · Downloaded'}
+          </div>
+        </button>
         {episode.description && (
           <div
             className="episode-row__subtitle"
+            role="button"
+            tabIndex={0}
+            onClick={onOpenDetails}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onOpenDetails()
+              }
+            }}
             dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(episode.description) }}
           />
         )}
-      </button>
+      </div>
       <PlayedToggle episodeId={episode.id} playbackState={playbackState} onChange={onPlayedChange} />
       <DownloadButton episode={episode} downloadRecord={downloadRecord} onChange={onDownloadChange} />
     </div>

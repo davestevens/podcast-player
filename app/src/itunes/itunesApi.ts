@@ -25,9 +25,8 @@ interface ItunesSearchResponse {
 }
 
 // The old iTunes RSS Generator's JSON shape (feed.entry[]) -- used instead
-// of Apple's newer rss.marketingtools.apple.com chart API, which 403s
-// Cloudflare Workers' fetch() outright (see the proxy's fetchItunesTrending
-// for why). Field names carry the feed's original "im:" namespace prefix.
+// of Apple's newer rss.marketingtools.apple.com chart API. Field names carry
+// the feed's original "im:" namespace prefix.
 interface ItunesTrendingEntry {
   'im:name': { label: string }
   'im:artist'?: { label: string }
@@ -39,7 +38,69 @@ interface ItunesTrendingResponse {
   feed: { entry: ItunesTrendingEntry[] }
 }
 
-const PROXY_BASE_URL = import.meta.env.VITE_PROXY_BASE_URL
+// iTunes' Search/Lookup APIs and the legacy RSS-generator chart endpoint all
+// send `Access-Control-Allow-Origin: *`, so we call them straight from the
+// browser rather than via our CORS proxy. Going direct spreads requests
+// across every user's own IP instead of funnelling the whole userbase
+// through one Cloudflare Worker egress IP, which Apple was rate-limiting
+// (429s). RSS feeds still need the proxy -- see feeds/feedFetcher.ts.
+const ITUNES_BASE = 'https://itunes.apple.com'
+
+const RATE_LIMIT_MESSAGE = 'iTunes is rate-limiting discovery right now — try again in a moment.'
+
+// Small per-session cache so re-opening Discover or repeating a search
+// doesn't re-hit Apple. Also doubles as a stale fallback when a request
+// fails (e.g. a 429). Keyed by full URL.
+const CACHE_TTL_MS = 30 * 60 * 1000
+
+interface CacheEntry<T> {
+  at: number
+  data: T
+}
+
+function cacheKey(url: string): string {
+  return `itunes-cache:${url}`
+}
+
+function readCache<T>(url: string): CacheEntry<T> | null {
+  try {
+    const raw = sessionStorage.getItem(cacheKey(url))
+    return raw ? (JSON.parse(raw) as CacheEntry<T>) : null
+  } catch {
+    return null
+  }
+}
+
+function writeCache<T>(url: string, data: T): void {
+  try {
+    sessionStorage.setItem(cacheKey(url), JSON.stringify({ at: Date.now(), data }))
+  } catch {
+    // sessionStorage full or unavailable -- caching is best-effort.
+  }
+}
+
+// Fetch JSON with a session cache in front and a stale-on-failure fallback.
+async function fetchJson<T>(url: string): Promise<T> {
+  const cached = readCache<T>(url)
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
+    return cached.data
+  }
+
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      if (cached) return cached.data
+      throw new Error(response.status === 429 ? RATE_LIMIT_MESSAGE : `Request failed (HTTP ${response.status})`)
+    }
+    const data = (await response.json()) as T
+    writeCache(url, data)
+    return data
+  } catch (err) {
+    if (cached) return cached.data
+    if (err instanceof Error && err.message === RATE_LIMIT_MESSAGE) throw err
+    throw new Error(RATE_LIMIT_MESSAGE)
+  }
+}
 
 function mapSearchResult(result: ItunesSearchResult): DiscoverResult {
   return {
@@ -52,16 +113,14 @@ function mapSearchResult(result: ItunesSearchResult): DiscoverResult {
 }
 
 export async function searchPodcasts(term: string): Promise<DiscoverResult[]> {
-  const response = await fetch(`${PROXY_BASE_URL}/itunes/search?term=${encodeURIComponent(term)}`)
-  if (!response.ok) throw new Error(`Search failed (HTTP ${response.status})`)
-  const data: ItunesSearchResponse = await response.json()
+  const url = `${ITUNES_BASE}/search?media=podcast&entity=podcast&term=${encodeURIComponent(term)}`
+  const data = await fetchJson<ItunesSearchResponse>(url)
   return data.results.map(mapSearchResult)
 }
 
 export async function getTrendingPodcasts(): Promise<DiscoverResult[]> {
-  const response = await fetch(`${PROXY_BASE_URL}/itunes/trending`)
-  if (!response.ok) throw new Error(`Failed to load trending podcasts (HTTP ${response.status})`)
-  const data: ItunesTrendingResponse = await response.json()
+  const url = `${ITUNES_BASE}/us/rss/toppodcasts/limit=25/genre=1310/json`
+  const data = await fetchJson<ItunesTrendingResponse>(url)
   return data.feed.entry.map(
     (entry): DiscoverResult => ({
       itunesId: Number(entry.id.attributes['im:id']),
@@ -76,9 +135,8 @@ export async function getTrendingPodcasts(): Promise<DiscoverResult[]> {
 // Trending results have no feedUrl -- resolve one via an iTunes lookup by id
 // before subscribing.
 export async function resolveFeedUrl(itunesId: number): Promise<string> {
-  const response = await fetch(`${PROXY_BASE_URL}/itunes/lookup?id=${itunesId}`)
-  if (!response.ok) throw new Error(`Lookup failed (HTTP ${response.status})`)
-  const data: ItunesSearchResponse = await response.json()
+  const url = `${ITUNES_BASE}/lookup?id=${itunesId}`
+  const data = await fetchJson<ItunesSearchResponse>(url)
   const feedUrl = data.results[0]?.feedUrl
   if (!feedUrl) throw new Error('Could not find a feed URL for this podcast')
   return feedUrl

@@ -6,6 +6,23 @@ export async function getPlaybackState(episodeId: string): Promise<PlaybackState
   return db.get('playbackState', episodeId)
 }
 
+// Batch read for a list of episodes -- one readonly transaction instead of
+// N awaited getPlaybackState() calls (see PodcastScreen's single-paint load).
+export async function getPlaybackStates(
+  episodeIds: string[],
+): Promise<Record<string, PlaybackState>> {
+  const db = await getDb()
+  const tx = db.transaction('playbackState', 'readonly')
+  const results = await Promise.all(episodeIds.map((id) => tx.store.get(id)))
+  await tx.done
+  const byId: Record<string, PlaybackState> = {}
+  episodeIds.forEach((id, i) => {
+    const state = results[i]
+    if (state) byId[id] = state
+  })
+  return byId
+}
+
 export async function putPlaybackState(state: PlaybackState): Promise<void> {
   const db = await getDb()
   await db.put('playbackState', state)

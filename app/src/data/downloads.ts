@@ -6,6 +6,23 @@ export async function getDownload(episodeId: string): Promise<DownloadRecord | u
   return db.get('downloads', episodeId)
 }
 
+// Batch read for a list of episodes -- one readonly transaction instead of
+// N awaited getDownload() calls.
+export async function getDownloads(
+  episodeIds: string[],
+): Promise<Record<string, DownloadRecord>> {
+  const db = await getDb()
+  const tx = db.transaction('downloads', 'readonly')
+  const results = await Promise.all(episodeIds.map((id) => tx.store.get(id)))
+  await tx.done
+  const byId: Record<string, DownloadRecord> = {}
+  episodeIds.forEach((id, i) => {
+    const record = results[i]
+    if (record) byId[id] = record
+  })
+  return byId
+}
+
 export async function listDownloads(): Promise<DownloadRecord[]> {
   const db = await getDb()
   const all = await db.getAll('downloads')
