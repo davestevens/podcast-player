@@ -16,7 +16,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: proxy/package-lock.json
 
@@ -29,3 +29,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: proxy
+          # Use the version already pinned in proxy/package-lock.json. Without
+          # this the action installs its own bundled default (wrangler@3.90.0),
+          # whose @cloudflare/workers-types@^4 peer clashes with our v5 devDep
+          # and fails `npm install` with ERESOLVE.
+          wranglerVersion: "4.129.0"
