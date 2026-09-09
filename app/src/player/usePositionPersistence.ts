@@ -11,12 +11,17 @@ export function usePositionPersistence(
   audioRef: React.RefObject<HTMLAudioElement | null>,
   episode: Episode | null,
 ) {
-  const episodeIdRef = useRef<string | null>(null)
-  episodeIdRef.current = episode?.id ?? null
+  // Tracks the currently-loaded episode for handlers that fire outside the
+  // track-change lifecycle (visibility/pagehide below).
+  const currentEpisodeIdRef = useRef<string | null>(null)
+  currentEpisodeIdRef.current = episode?.id ?? null
 
-  const saveNow = () => {
+  // Saves the element's current position against a *specific* episode id.
+  // Callers pass the id captured when their effect ran, not the current
+  // `episode` -- on a track change the cleanup below must write the outgoing
+  // episode's position, but React has already re-rendered with the new one.
+  const saveFor = (episodeId: string | null) => {
     const audio = audioRef.current
-    const episodeId = episodeIdRef.current
     if (!audio || !episodeId || !Number.isFinite(audio.currentTime)) return
     const durationSec = Number.isFinite(audio.duration) ? audio.duration : undefined
     void savePosition(episodeId, audio.currentTime, durationSec)
@@ -49,17 +54,19 @@ export function usePositionPersistence(
   // track change/unmount (captures the position before the src swaps).
   useEffect(() => {
     const audio = audioRef.current
-    if (!audio) return
+    if (!audio || !episode) return
+    const episodeId = episode.id
+    const save = () => saveFor(episodeId)
 
     const intervalId = window.setInterval(() => {
-      if (audioRef.current && !audioRef.current.paused) saveNow()
+      if (audioRef.current && !audioRef.current.paused) save()
     }, SAVE_INTERVAL_MS)
-    audio.addEventListener('pause', saveNow)
+    audio.addEventListener('pause', save)
 
     return () => {
       window.clearInterval(intervalId)
-      audio.removeEventListener('pause', saveNow)
-      saveNow()
+      audio.removeEventListener('pause', save)
+      save()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioRef, episode])
@@ -77,14 +84,15 @@ export function usePositionPersistence(
 
   // Save immediately when the tab is hidden/closed, regardless of episode churn.
   useEffect(() => {
+    const save = () => saveFor(currentEpisodeIdRef.current)
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') saveNow()
+      if (document.visibilityState === 'hidden') save()
     }
     document.addEventListener('visibilitychange', onVisibilityChange)
-    window.addEventListener('pagehide', saveNow)
+    window.addEventListener('pagehide', save)
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
-      window.removeEventListener('pagehide', saveNow)
+      window.removeEventListener('pagehide', save)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
